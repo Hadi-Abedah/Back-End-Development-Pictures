@@ -35,7 +35,7 @@ def count():
 ######################################################################
 @app.route("/picture", methods=["GET"])
 def get_pictures():
-    pass
+    return jsonify(data), 200
 
 ######################################################################
 # GET A PICTURE
@@ -44,15 +44,27 @@ def get_pictures():
 
 @app.route("/picture/<int:id>", methods=["GET"])
 def get_picture_by_id(id):
-    pass
+    for dic in data:
+        if dic["id"] == id:
+            return jsonify(dic)
+    return jsonify({"error": "Picture not found"}), 404
 
 
 ######################################################################
 # CREATE A PICTURE
 ######################################################################
+
 @app.route("/picture", methods=["POST"])
 def create_picture():
-    pass
+    picture = request.get_json()
+    if not picture:
+        return jsonify({"error": "Request body must be JSON"}), 400
+    
+    if any(dic['id'] == picture['id'] for dic in data):
+        return jsonify({"Message": f"picture with id {picture['id']} already present"}), 302
+
+    data.append(picture)
+    return jsonify(picture), 201
 
 ######################################################################
 # UPDATE A PICTURE
@@ -61,11 +73,26 @@ def create_picture():
 
 @app.route("/picture/<int:id>", methods=["PUT"])
 def update_picture(id):
-    pass
+    picture = request.get_json()
+    if not picture:
+        return jsonify({"error": "Request body must be JSON"}), 400
+
+    pic_id = id
+    for dic in data:
+        if dic["id"] == pic_id:
+            dic.update(picture)
+            return jsonify(dic), 200
+    
+    return jsonify({"error": "Picture not found"}), 404
 
 ######################################################################
 # DELETE A PICTURE
 ######################################################################
 @app.route("/picture/<int:id>", methods=["DELETE"])
 def delete_picture(id):
-    pass
+    pic_id = id
+    for dic in data:
+        if dic["id"] == pic_id:
+            data.remove(dic)
+            return jsonify({"message": "Picture deleted"}), 204
+    return jsonify({"message": "Picture not found"}), 404
